@@ -7,7 +7,7 @@ You must test your agent's strength against a set of agents with known
 relative strength using tournament.py and include the results in your report.
 """
 import random
-
+import math
 
 class Timeout(Exception):
     """Subclass base exception for code clarity."""
@@ -123,20 +123,26 @@ class CustomPlayer:
         # Perform any required initializations, including selecting an initial
         # move from the game board (i.e., an opening book), or returning
         # immediately if there are no legal moves
-
+        # print(legal_moves, 'legal moves passed in')
+        if len(legal_moves) == 0:
+            return
+        move = legal_moves[0];
+        print(move, "the move to return if try block is not called")
+        # print("first move", move)
         try:
             # The search method call (alpha beta or minimax) should happen in
             # here in order to avoid timeout. The try/except block will
             # automatically catch the exception raised by the search method
             # when the timer gets close to expiring
-            pass
+            score, move = self.minimax(game, self.search_depth)
 
         except Timeout:
             # Handle any actions required at timeout, if necessary
             pass
 
         # Return the best move from the last completed search iteration
-        raise NotImplementedError
+        print("move to return {}, with score {}".format(move, score))
+        return move
 
     def minimax(self, game, depth, maximizing_player=True):
         """Implement the minimax search algorithm as described in the lectures.
@@ -173,7 +179,40 @@ class CustomPlayer:
             raise Timeout()
 
         # TODO: finish this function!
-        raise NotImplementedError
+
+        current_player = game.active_player
+
+        # base case for recursion
+        if depth<=0:
+            print(game.get_player_location(current_player), current_player)
+            # Should get the current location of --us--, and the score
+            # for that location given the game board
+            current_move = game.get_player_location(self)
+            return self.score(game, self), current_move
+
+        # initialize
+        legal_moves = game.get_legal_moves();
+        choosen_move = legal_moves[0]
+        move_score = -math.inf if maximizing_player==True else math.inf
+
+        print(legal_moves, "legal moves")
+        for move in legal_moves:
+            temp_board = game.forecast_move(move)
+            # Recursive step
+            temp_score, _= self.minimax(temp_board, depth-1, not maximizing_player)
+            print("temp_move {}, temp_score {}, depth {}".format(_, temp_score, depth))
+            # check whether we're maximizing or minimizing score
+            if maximizing_player == True:
+                if temp_score > move_score:
+                    choosen_move, move_score = move, temp_score
+            else:
+                if temp_score < move_score:
+                    choosen_move, move_score = move, temp_score
+
+        print("Best move: {}, move_score {}, depth {}".format(choosen_move, move_score, depth))
+
+        return move_score, choosen_move
+
 
     def alphabeta(self, game, depth, alpha=float("-inf"), beta=float("inf"), maximizing_player=True):
         """Implement minimax search with alpha-beta pruning as described in the
