@@ -37,8 +37,8 @@ def custom_score(game, player):
         The heuristic value of the current game state to the specified player.
     """
 
-    # TODO: finish this function!
-    raise NotImplementedError
+    opponent = game.get_opponent(player)
+    return len(game.get_legal_moves(player)) - 2.0*len(game.get_legal_moves(opponent))
 
 
 class CustomPlayer:
@@ -145,7 +145,7 @@ class CustomPlayer:
                 depth=1
                 while True:
                     score, move = search(depth, game)
-                    depth += depth
+                    depth += 1
             else:
                 score, move = search(self.search_depth, game)
 
@@ -229,7 +229,7 @@ class CustomPlayer:
             raise Timeout()
 
         best_move, best_score = argmax(game.get_legal_moves(), min_value, game, depth)
-        return best_score, best_mov
+        return best_score, best_move
 
 
     def alphabeta(self, game, depth, alpha=float("-inf"), beta=float("inf"), maximizing_player=True):
@@ -279,8 +279,15 @@ class CustomPlayer:
             current_move = game.get_player_location(self)
             return self.score(game, self), current_move
 
-        # initialize
+        # Endgame
         legal_moves = game.get_legal_moves();
+        if len(legal_moves) == 0:
+            current_move = game.get_player_location(self)
+            if maximizing_player == True:
+                return -math.inf, current_move
+            else:
+                return math.inf, current_move
+
         choosen_move = legal_moves[0]
         move_score = -math.inf if maximizing_player==True else math.inf
 
