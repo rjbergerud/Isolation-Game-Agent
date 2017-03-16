@@ -157,30 +157,6 @@ class CustomPlayer:
         print("move to return {}, with score {}".format(move, score))
         return move
 
-    def argmax(actions, funct, game):
-        current_max_score = -math.inf
-        current_best_action = actions[0]
-        for action in actions:
-             score, move = funct(action, game.search_depth - 1)
-             current_best_action = action if score > current_max_score else current_best_action
-        return current_best_action
-
-    def max_value(game, depth):
-        if depth <= 0:
-            return self.score(game, self)
-        score = -math.inf
-        for action in actions:
-            score = max(score, self.min_value(game.forecast_move(action), depth-1))
-        return score
-
-    def min_value(game, depth):
-        if depth <= 0:
-            return self.score(game, self)
-        score = math.inf
-        for action in actions:
-            score = min(score, self.min_value(game.forecast_move(action), depth-1))
-        return score
-
 
     def minimax(self, game, depth, maximizing_player=True):
         """Implement the minimax search algorithm as described in the lectures.
@@ -213,35 +189,47 @@ class CustomPlayer:
                 to pass the project unit tests; you cannot call any other
                 evaluation function directly.
         """
+
+        def argmax(actions, funct, game, depth):
+            if self.time_left() < self.TIMER_THRESHOLD:
+                raise Timeout()
+            current_max_score = -math.inf
+            current_best_action = actions[0]
+            for action in actions:
+                 score = funct(game.forecast_move(action), depth - 1)
+                 current_best_action = action if score > current_max_score else current_best_action
+                 current_max_score = max(current_max_score, score)
+            return current_best_action, current_max_score
+
+        def max_value(game, depth):
+            if game.active_player != self:
+                console.log("ERRRRORRRR should be self")
+            if self.time_left() < self.TIMER_THRESHOLD:
+                raise Timeout()
+            if depth <= 0:
+                return self.score(game, self)
+            score = -math.inf
+            for action in game.get_legal_moves():
+                score = max(score, min_value(game.forecast_move(action), depth-1))
+            return score
+
+        def min_value(game, depth):
+            if game.get_opponent(self) == self:
+                console.log("ERRORRRRR should not be self")
+            if self.time_left() < self.TIMER_THRESHOLD:
+                raise Timeout()
+            if depth <= 0:
+                return self.score(game, self)
+            score = math.inf
+            for action in game.get_legal_moves():
+                score = min(score, max_value(game.forecast_move(action), depth-1))
+            return score
+
         if self.time_left() < self.TIMER_THRESHOLD:
             raise Timeout()
 
-        # base case for recursion
-        if depth<=0:
-            # Should get the current location of --us--, and the score
-            # for that location given the game board
-            current_move = game.get_player_location(self)
-            return self.score(game, self), current_move
-
-        # initialize
-        legal_moves = game.get_legal_moves();
-        choosen_move = legal_moves[0]
-        move_score = -math.inf if maximizing_player==True else math.inf
-
-        for move in legal_moves:
-            temp_board = game.forecast_move(move)
-            # Recursive step
-            temp_score, _= self.minimax(temp_board, depth-1, not maximizing_player)
-            if maximizing_player == True:
-                if temp_score > move_score:
-                     move_score, choosen_move = temp_score, move
-            else:
-                if temp_score < move_score:
-                    move_score, choosen_move,= temp_score, move
-
-        # print("Best move: {}, move_score {}, depth {}".format(choosen_move, move_score, depth))
-
-        return move_score, choosen_move
+        best_move, best_score = argmax(game.get_legal_moves(), min_value, game, depth)
+        return best_score, best_mov
 
 
     def alphabeta(self, game, depth, alpha=float("-inf"), beta=float("inf"), maximizing_player=True):

@@ -145,7 +145,7 @@ def makeEvalStop(limit, timer, value=None):
                                "return an answer before the timer reaches 0.")
         if limit == game.counts[0]:
             timer.time_limit = 0
-            print("limit: ",limit)
+            print("limit :",limit)
         return 0
 
     return score
@@ -532,6 +532,8 @@ class Project1Test(unittest.TestCase):
             diff_total = abs(board.counts[0] - exact_counts[idx][0])
             diff_unique = abs(board.counts[1] - exact_counts[idx][1])
             print("unique counted {}, supposed to be {} with origin {}".format(board.counts[1], exact_counts[idx][1], origins[idx]))
+            print(board.visited)
+            print(board.counter)
             self.assertTrue(diff_total <= 1 and diff_unique == 0, ID_FAIL)
 
             self.assertTrue(chosen_move in legal_moves, INVALID_MOVE.format(
