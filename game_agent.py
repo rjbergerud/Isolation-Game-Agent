@@ -127,22 +127,37 @@ class CustomPlayer:
         if len(legal_moves) == 0:
             return
         move = legal_moves[0];
-        print(move, "the move to return if try block is not called")
-        # print("first move", move)
+
+        def search(depth, game):
+            if self.method == "minimax":
+                score, move = self.minimax(game, depth)
+            elif self.method == "alphabeta":
+                score, move = self.alphabeta(game, depth)
+            else:
+                print("method chosen isn't minimax or alphabeta")
+            return score, move
+
         try:
             # The search method call (alpha beta or minimax) should happen in
             # here in order to avoid timeout. The try/except block will
             # automatically catch the exception raised by the search method
             # when the timer gets close to expiring
-            score, move = self.minimax(game, self.search_depth)
+            if self.iterative == True:
+                depth=1
+                while True:
+                    score, move = search(depth, game)
+                    depth += depth
+            else:
+                score, move = search(self.search_depth, game)
 
         except Timeout:
             # Handle any actions required at timeout, if necessary
-            pass
+            return move
 
         # Return the best move from the last completed search iteration
         print("move to return {}, with score {}".format(move, score))
         return move
+
 
     def minimax(self, game, depth, maximizing_player=True):
         """Implement the minimax search algorithm as described in the lectures.
@@ -184,7 +199,7 @@ class CustomPlayer:
 
         # base case for recursion
         if depth<=0:
-            print(game.get_player_location(current_player), current_player)
+            # print(game.get_player_location(current_player), current_player)
             # Should get the current location of --us--, and the score
             # for that location given the game board
             current_move = game.get_player_location(self)
@@ -195,12 +210,12 @@ class CustomPlayer:
         choosen_move = legal_moves[0]
         move_score = -math.inf if maximizing_player==True else math.inf
 
-        print(legal_moves, "legal moves")
+        # print(legal_moves, "legal moves")
         for move in legal_moves:
             temp_board = game.forecast_move(move)
             # Recursive step
             temp_score, _= self.minimax(temp_board, depth-1, not maximizing_player)
-            print("temp_move {}, temp_score {}, depth {}".format(_, temp_score, depth))
+            # print("temp_move {}, temp_score {}, depth {}".format(_, temp_score, depth))
             # check whether we're maximizing or minimizing score
             if maximizing_player == True:
                 if temp_score > move_score:
@@ -209,7 +224,7 @@ class CustomPlayer:
                 if temp_score < move_score:
                     choosen_move, move_score = move, temp_score
 
-        print("Best move: {}, move_score {}, depth {}".format(choosen_move, move_score, depth))
+        # print("Best move: {}, move_score {}, depth {}".format(choosen_move, move_score, depth))
 
         return move_score, choosen_move
 
@@ -256,4 +271,45 @@ class CustomPlayer:
             raise Timeout()
 
         # TODO: finish this function!
-        raise NotImplementedError
+        current_player = game.active_player
+
+        # base case for recursion
+        if depth<=0:
+            # print(game.get_player_location(current_player), current_player)
+            # Should get the current location of --us--, and the score
+            # for that location given the game board
+            current_move = game.get_player_location(self)
+            return self.score(game, self), current_move
+
+        # initialize
+        legal_moves = game.get_legal_moves();
+        choosen_move = legal_moves[0]
+        move_score = -math.inf if maximizing_player==True else math.inf
+
+        # print(legal_moves, "legal moves")
+        for move in legal_moves:
+            temp_board = game.forecast_move(move)
+            # Recursive step
+            temp_score, _= self.alphabeta(temp_board, depth-1, alpha=alpha, beta=beta, maximizing_player=(not maximizing_player))
+            # print("ALPHABETA: temp_move {}, temp_score {}, depth {}, maximizing_player {}".format(_, temp_score, depth-1, maximizing_player))
+            # print("alpha {}, beta {}".format(alpha, beta))
+            # check whether we're maximizing or minimizing score
+            if maximizing_player == True:
+                if temp_score > move_score:
+                    choosen_move, move_score = move, temp_score
+                if beta <= move_score:
+                    return move_score, choosen_move
+                    # print("Beta exceeded with {} greater than beta score {}".format(move_score, beta))
+                alpha = max(alpha, move_score)
+                # print("alpha",alpha)
+            else:
+                if temp_score < move_score:
+                    choosen_move, move_score = move, temp_score
+                if alpha >= move_score:
+                    return move_score, choosen_move
+                    # print("Alpha SHORTCUTTED {} less than alpha score {}".format(move_score, alpha))
+                beta = min(beta, move_score)
+
+        # print("ALPHABETA NOT SHORTCUTTED: Best move: {}, move_score {}, depth {}".format(choosen_move, move_score, depth))
+
+        return move_score, choosen_move

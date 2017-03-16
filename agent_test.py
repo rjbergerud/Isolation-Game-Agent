@@ -145,6 +145,7 @@ def makeEvalStop(limit, timer, value=None):
                                "return an answer before the timer reaches 0.")
         if limit == game.counts[0]:
             timer.time_limit = 0
+            print("limit: ",limit)
         return 0
 
     return score
@@ -526,10 +527,11 @@ class Project1Test(unittest.TestCase):
                                           w, h)
             legal_moves = board.get_legal_moves()
             chosen_move = agentUT.get_move(board, legal_moves, timer.time_left)
+            print("board count {}, supposed to be {}".format(board.counts[0], exact_counts[idx][0]))
 
             diff_total = abs(board.counts[0] - exact_counts[idx][0])
             diff_unique = abs(board.counts[1] - exact_counts[idx][1])
-
+            print("unique counted {}, supposed to be {} with origin {}".format(board.counts[1], exact_counts[idx][1], origins[idx]))
             self.assertTrue(diff_total <= 1 and diff_unique == 0, ID_FAIL)
 
             self.assertTrue(chosen_move in legal_moves, INVALID_MOVE.format(
