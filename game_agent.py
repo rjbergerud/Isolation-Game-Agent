@@ -13,6 +13,62 @@ class Timeout(Exception):
     """Subclass base exception for code clarity."""
     pass
 
+def weighted_spaces(game, player, weighting):
+    opponent = game.get_opponent(player)
+    return 1.0*weighting[0]*len(game.get_legal_moves(player)) - 1.0*weighting[1]*len(game.get_legal_moves(opponent))
+
+def direction_score(game, player):
+    opponent = game.get_opponent(player)
+    me_loc = game.get_player_location(player)
+    opp_loc = game.get_player_location(opponent)
+
+    # if opponent is up: positive, down: neg
+    row_distance = me_loc[0] - opp_loc[0]
+    row_direction = "up" if row_distance > 0 else "down"
+
+    # if opponent is left: pos, right: neg
+    col_distance = me_loc[1] - opp_loc[1]
+    col_direction = "left" if row_distance > 0 else "right"
+
+
+    # Four quadrants
+
+    # up, left, (+,+)
+    # if row_direction == "up" and col_direction == "left":
+    #
+    # elif row_direction == "down" and col_direction == "left":
+    #
+    # elif row_direction == "down" and col_direction == "right":
+    #
+    # elif row_direction == "up" and col_direction == "right":
+    #
+    # else:
+    #     return
+
+    # down, left (-,+)
+
+    # down, right (-,-)
+
+    # up, right (+, -)
+
+def distance_score(game, player):
+    opponent = game.get_opponent(player)
+    me_loc = game.get_player_location(player)
+    opp_loc = game.get_player_location(opponent)
+
+    # if opponent is up: positive, down: neg
+    row_distance = me_loc[0] - opp_loc[0]
+    row_direction = "up" if row_distance > 0 else "down"
+
+    # if opponent is left: pos, right: neg
+    col_distance = me_loc[1] - opp_loc[1]
+    col_direction = "left" if row_distance > 0 else "right"
+
+    total_distance = row_distance + 1.0*col_distance
+    return 1.0/(abs(total_distance) + 1.0)
+
+
+
 
 def custom_score(game, player):
     """Calculate the heuristic value of a game state from the point of view
@@ -36,9 +92,9 @@ def custom_score(game, player):
     float
         The heuristic value of the current game state to the specified player.
     """
+    return distance_score(game, player)
 
-    opponent = game.get_opponent(player)
-    return len(game.get_legal_moves(player)) - 2.0*len(game.get_legal_moves(opponent))
+
 
 
 class CustomPlayer:
@@ -154,7 +210,7 @@ class CustomPlayer:
             return move
 
         # Return the best move from the last completed search iteration
-        print("move to return {}, with score {}".format(move, score))
+        # print("move to return {}, with score {}".format(move, score))
         return move
 
 
@@ -279,7 +335,7 @@ class CustomPlayer:
             current_move = game.get_player_location(self)
             return self.score(game, self), current_move
 
-        # Endgame
+        # Endgames
         legal_moves = game.get_legal_moves();
         if len(legal_moves) == 0:
             current_move = game.get_player_location(self)
