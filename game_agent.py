@@ -53,6 +53,12 @@ def direction_score(game, player):
 
 def distance_score(game, player):
     opponent = game.get_opponent(player)
+    if game.get_player_location(player) == None:
+        return 0.0
+
+    if  game.get_player_location(opponent) == None:
+        return 0.0
+
     me_loc = game.get_player_location(player)
     opp_loc = game.get_player_location(opponent)
 
