@@ -180,7 +180,7 @@ class CustomPlayer:
         # move from the game board (i.e., an opening book), or returning
         # immediately if there are no legal moves
         if len(legal_moves) == 0:
-            return
+            return (-1,-1)
         move = legal_moves[0];
 
         def search(depth, game):
